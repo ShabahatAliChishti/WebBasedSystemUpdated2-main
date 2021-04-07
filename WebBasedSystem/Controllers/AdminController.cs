@@ -1202,6 +1202,9 @@ namespace WebBasedSystem.Controllers
         //{
 
         //    List<string> data = new List<string>();
+
+
+
         //    if (FileUpload != null)
         //    {
         //        // tdata.ExecuteCommand("truncate table OtherCompanyAssets");  
