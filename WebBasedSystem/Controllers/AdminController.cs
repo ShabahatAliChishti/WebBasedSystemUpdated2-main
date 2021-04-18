@@ -16,6 +16,7 @@ using LinqToExcel;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.IO;
+using System.Collections.Specialized;
 
 namespace WebBasedSystem.Controllers
 {
@@ -699,7 +700,82 @@ namespace WebBasedSystem.Controllers
             return RedirectToAction("AllWaysPoints");
         
         }
-        public ActionResult AddWayPoints()
+
+
+        public JsonResult GetData()
+        {
+            NameValueCollection nvc = HttpUtility.ParseQueryString(Request.Url.Query);
+            string sEcho = nvc["sEcho"].ToString();
+            string sSearch = nvc["sSearch"].ToString();
+            int iDisplayStart = Convert.ToInt32(nvc["iDisplayStart"]);
+            int iDisplayLength = Convert.ToInt32(nvc["iDisplayLength"]);
+
+
+            //iSortCol gives your Column numebr of for which sorting is required
+            int iSortCol = Convert.ToInt32(nvc["iSortCol_0"]);
+            //provides your sort order (asc/desc)
+            string sortOrder = nvc["sSortDir_0"].ToString();
+
+            //get total value count
+            var Count = db.WayPoints.Count();
+
+            var Students = new List<WayPoint>();
+
+            //Search query when sSearch is not empty
+            if (sSearch != "" && sSearch != null) //If there is search query
+            {
+
+                Students = db.WayPoints.Where(a => a.State.ToLower().Contains(sSearch.ToLower())
+                                  || a.Suburbs.ToLower().Contains(sSearch.ToLower())
+                                  || a.PostCode.ToLower().Contains(sSearch.ToLower())
+
+                                  )
+                                  .ToList();
+
+                Count = Students.Count();
+                // Call SortFunction to provide sorted Data, then Skip using iDisplayStart  
+                Students = SortFunction(iSortCol, sortOrder, Students).Skip(iDisplayStart).Take(iDisplayLength).ToList();
+            }
+            else
+            {
+                //get data from database
+                Students = db.WayPoints //speficiy conditions if there is any using .Where(Condition)                             
+                                   .ToList();
+
+                // Call SortFunction to provide sorted Data, then Skip using iDisplayStart  
+                Students = SortFunction(iSortCol, sortOrder, Students).Skip(iDisplayStart).Take(iDisplayLength).ToList();
+            }
+
+            var StudentsPaged = new SysDataTablePager<WayPoint>(Students, Count, Count, sEcho);
+
+            return Json(StudentsPaged, JsonRequestBehavior.AllowGet);
+
+
+        }
+        private List<WayPoint> SortFunction(int iSortCol, string sortOrder, List<WayPoint> list)
+        {
+
+            //Sorting for String columns
+            if (iSortCol == 1 || iSortCol == 0 || iSortCol == 2)
+            {
+                Func<WayPoint, string> orderingFunction = (c => iSortCol == 0 ? c.State : iSortCol == 1 ? c.Suburbs : iSortCol == 2 ? c.PostCode : c.State); // compare the sorting column
+
+                if (sortOrder == "desc")
+                {
+                    list = list.OrderByDescending(orderingFunction).ToList();
+                }
+                else
+                {
+                    list = list.OrderBy(orderingFunction).ToList();
+
+                }
+            }
+
+
+            return list;
+        }
+    
+    public ActionResult AddWayPoints()
         {
 
 
@@ -776,17 +852,17 @@ namespace WebBasedSystem.Controllers
 
         public ActionResult AllWaysPoints()
         {
-            List<WayPointsModel> listEmp = db.WayPoints.Select(x => new WayPointsModel
-            {
-                Id = x.Id,
-                Latitude = x.Latitude,
-                Longitude = x.Longitude,
-                Suburbs = x.Suburbs,
-                PostCode = x.PostCode,
-                State = x.State,
+            //List<WayPointsModel> listEmp = db.WayPoints.Select(x => new WayPointsModel
+            //{
+            //    Id = x.Id,
+            //    Latitude = x.Latitude,
+            //    Longitude = x.Longitude,
+            //    Suburbs = x.Suburbs,
+            //    PostCode = x.PostCode,
+            //    State = x.State,
 
-            }).ToList();
-            ViewBag.EmployeeList = listEmp;
+            //}).ToList();
+            //ViewBag.EmployeeList = listEmp;
 
             return View();
         }

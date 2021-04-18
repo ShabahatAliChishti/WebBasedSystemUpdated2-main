@@ -199,6 +199,7 @@
     <Compile Include="Models\SpecialistTypeSubMenu.cs">
       <DependentUpon>WebBasedDbModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\SysDataTablePager.cs" />
     <Compile Include="Models\User.cs">
       <DependentUpon>WebBasedDbModel.tt</DependentUpon>
     </Compile>
