@@ -6,7 +6,7 @@ using System.Web;
 namespace WebBasedSystem.Models
 {
     public class SysDataTablePager<T>
-    {
+    {//
         public SysDataTablePager(IEnumerable<T> items,
             int totalRecords,
             int totalDisplayRecords,
